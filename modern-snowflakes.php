@@ -57,6 +57,7 @@ function snowflakes_admin_init() {
     //add_settings_field("location","Location","location_cb","snowflakes-settings","ss_id");
 
     add_settings_field("amount", "Amount of snowflakes", "amount_cb", "snowflakes-settings", "ss_id");
+    add_settings_field("reverse_direction", "Reverse direction", "reverse_direction_cb", "snowflakes-settings", "ss_id");
     add_settings_field("nuclear_mode", "Nuclear mode", "nuclear_mode_cb", "snowflakes-settings", "ss_id");
 }
 
@@ -83,6 +84,11 @@ function snowflake_sanitize($input) {
         $ok_input['location']['lng'] = (float)$input['location']['lng'];
     } else if ( $ok_input['on_when'] == 'geo' ) {
         $ok_input['on_when'] = 'always';
+    }
+    if ( isset($input['reverse_direction']) ) {
+        $ok_input['reverse_direction'] = true;
+    } else {
+        $ok_input['reverse_direction'] = false;
     }
     return $ok_input;
 }
@@ -126,6 +132,14 @@ function location_cb() {
     <label>Latitude <input type="text" value="<?= $val['lat'] ?>" name="snowflake_settings[location][lat]" class="location" id="location-lat"  placeholder="12.1234"></label><br>
     <label>Longitude <input type="text" value="<?= $val['lng'] ?>" placeholder="12.1234" name="snowflake_settings[location][lng]" id="location-lng" class="location"></label><br>
     <button id="set_current_location" class="button location">Set from my location</button>
+    <?php
+}
+
+function reverse_direction_cb() {
+    $opts = get_option("snowflake_settings");
+    $val = isset($opts['reverse_direction']) ? $opts['reverse_direction'] : false;
+    ?>
+    <input type="checkbox" name="snowflake_settings[reverse_direction]" value="1" <?= $val?"checked":"" ?> >
     <?php
 }
 
@@ -210,11 +224,12 @@ function do_snowflakes(){
     } else {
         $amount = !isset($opts['amount']) || $opts['amount'] == "auto" ? 250 : $opts['amount'];
     }
-    
+
+
     ?>
     <script type="text/javascript" src="<?= plugins_url( 'snowflakes.min.js', __FILE__ ); ?>"></script>
     <script type="text/javascript">
-        window.snowflakes({amount: <?= $amount ?>, nuclearMode: <?=$opts['nuclear_mode']?"true":"false"?>});
+        window.snowflakes({amount: <?= $amount ?>, invertDirection: <?= isset($opts['reverse_direction'])&&$opts['reverse_direction']?"true":"false" ?>, nuclearMode: <?=$opts['nuclear_mode']?"true":"false"?>});
     </script>
     <?php
 }
